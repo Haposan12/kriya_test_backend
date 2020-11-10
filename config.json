@@ -1,0 +1,9 @@
+{
+  "database": {
+    "name": "kriya_test",
+    "username" : "test",
+    "password" : "kriyatest123",
+    "port" : "8976",
+    "host" : "18.140.67.82"
+  }
+}

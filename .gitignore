@@ -1,0 +1,4 @@
+# vendor library
+.idea/
+logs/
+vendor/
