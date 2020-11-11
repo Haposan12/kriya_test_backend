@@ -1,6 +1,10 @@
 package user
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+	"kriya_test_backend/shared/times"
+)
 
 type RepositoryPostgres struct {
 	postgres *sql.DB
@@ -8,6 +12,43 @@ type RepositoryPostgres struct {
 
 func NewRepository(postgres *sql.DB) *RepositoryPostgres {
 	return &RepositoryPostgres{postgres: postgres}
+}
+
+func (repo RepositoryPostgres) InsertUser(data CreateUserModel) (err error) {
+	now := times.Now(times.TimeGmt, times.TimeFormat)
+
+	query := `INSERT INTO users(id, data, role_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`
+
+	_, err = repo.postgres.Query(query, data.UUID, data.Data, data.RoleID, now, now)
+
+	return
+}
+
+func (repo RepositoryPostgres) UpdateUser(data UpdateUserRequestModel) (err error)  {
+	now := times.Now(times.TimeGmt, times.TimeFormat)
+	email := fmt.Sprintf("%s%s%s", `"`, data.Email, `"`)
+	username := fmt.Sprintf("%s%s%s", `"`, data.Username, `"`)
+	password := fmt.Sprintf("%s%s%s", `"`, data.Password, `"`)
+
+	query := `UPDATE users
+			SET data = jsonb_set(
+				jsonb_set(
+					jsonb_set(data, '{email}', $1), '{username}', $2
+				), '{pasword}', $3), updated_at = $4
+				
+			WHERE id = $5`
+
+	_, err = repo.postgres.Exec(query, email, username, password, now, data.UUID)
+
+	return
+}
+
+func (repo RepositoryPostgres) DeleteUser(uuid string) (err error) {
+	query := `DELETE FROM users WHERE id = $1`
+
+	_, err = repo.postgres.Exec(query, uuid)
+
+	return
 }
 
 func (repo RepositoryPostgres) GetUserDetail(uuid string) (userDetail GetUserDetailResponse, err error) {

@@ -2,23 +2,24 @@ package main
 
 import (
 	"github.com/go-chi/chi"
+	"kriya_test_backend/auth"
 	"kriya_test_backend/config"
 	"kriya_test_backend/user"
 	"kriya_test_backend/utils"
 )
 
 func main() {
-	repository := user.NewRepository(config.GlobalDBSQL)
+	authRepository := auth.NewRepository(config.GlobalDBSQL)
+	authService := auth.NewService(*authRepository)
 
-	service := user.NewService(*repository)
-
-	delivery := user.NewDelivery(*service)
-
-	routes := user.NewRoutes(delivery)
+	userRepository := user.NewRepository(config.GlobalDBSQL)
+	userService := user.NewService(*userRepository)
+	userController := user.NewDelivery(*userService)
+	userRoutes := user.NewRoutes(userController, authService)
 
 	r := chi.NewRouter()
 
-	routes.RegisterRoutes(r)
+	userRoutes.RegisterRoutes(r)
 
 	port := ":12345"
 
